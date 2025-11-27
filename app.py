@@ -8,27 +8,45 @@ app = Flask(__name__)
 SAVE_DIR = "pictures"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
-# 🔹 ЕДНА обща камера за всичко – стрийм + снимки
-camera = cv2.VideoCapture(0)
+# 🔹 Глобална променлива за камерата (лениво отваряне)
+camera = None
+
+
+def get_camera():
+    """Връща отворена камера, ако трябва – я отваря."""
+    global camera
+
+    if camera is None or not camera.isOpened():
+        # тук е мястото, ако искаш да смениш индекса (0 -> 1 и т.н.)
+        camera = cv2.VideoCapture(0)
+
+        # по желание – намали резолюцията
+        # camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        # camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
+        if not camera.isOpened():
+            print("[ERROR] Не мога да отворя камерата на индекс 0")
+            return None
+
+    return camera
 
 
 def get_frame():
-    """Взима един кадър от камерата."""
-    global camera
+    """Взима един кадър от общата камера."""
+    cam = get_camera()
+    if cam is None:
+        return None
 
-    # ако по някаква причина е затворена – отваряме пак
-    if not camera.isOpened():
-        camera.open(0)
-
-    ret, frame = camera.read()
+    ret, frame = cam.read()
     if not ret:
+        print("[ERROR] Неуспешно четене от камерата")
         return None
 
     return frame
 
 
 def take_picture():
-    """Прави снимка, използвайки същата камера като стрийма."""
+    """Прави снимка, без да отваря нова VideoCapture."""
     frame = get_frame()
     if frame is None:
         return None
@@ -40,7 +58,7 @@ def take_picture():
 
 
 def generate_frames():
-    """MJPEG стрийм от същата камера."""
+    """MJPEG стрийм, използващ същата камера."""
     while True:
         frame = get_frame()
         if frame is None:
@@ -132,5 +150,10 @@ def live_snapshot():
     return redirect(url_for("preview", filename=filename, next="/live"))
 
 
-
-if __name__ == "__main__": app.run(debug=True)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=False  # без debug, за да няма втори процес
+    )
