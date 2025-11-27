@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="utf-8">
+    <title>Умен звънец – Flask</title>
+    <!-- Bootstrap CDN -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    >
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-dark mb-4">
+  <div class="container d-flex justify-content-between align-items-center">
+    <a class="navbar-brand" href="/">
+      🛎 Умен звънец
+    </a>
+
+    <div class="d-flex gap-3">
+      <a class="nav-link text-light" href="/gallery">📷 Галерия</a>
+      <a class="nav-link text-light" href="/live">🎥 Live</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- Основна карта с бутона -->
+  <div class="row justify-content-center mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <h3 class="card-title mb-3">Контролен панел</h3>
+          <p class="card-text">
+            Натисни бутона, за да направиш снимка с камерата.
+          </p>
+          <a href="/snapshot" class="btn btn-primary btn-lg">
+            📸 Направи снимка
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Галерия със снимки -->
+  <div class="row">
+    <div class="col-12">
+      <h4 class="mb-3">Последни снимки</h4>
+    </div>
+
+    {% if images %}
+      {% for img in images[:12] %}
+        <div class="col-6 col-md-3 mb-3">
+          <div class="card shadow-sm h-100">
+            <a href="javascript:void(0);" onclick="openImage('{{ url_for('pictures', filename=img) }}')">
+              <img src="{{ url_for('pictures', filename=img) }}" class="card-img-top" alt="{{ img }}">
+            </a>
+            <div class="card-body p-2">
+              <small class="text-muted d-block">{{ img }}</small>
+
+              <form method="post"
+                    action="{{ url_for('delete_image', filename=img) }}"
+                    onsubmit="return confirm('Сигурен ли си, че искаш да изтриеш тази снимка?');">
+                <button type="submit" class="btn btn-sm btn-outline-danger w-100 mt-2">
+                  🗑 Изтрий
+                </button>
+              </form>
+
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12">
+        <p class="text-muted">Все още няма снимки. Натисни бутона горе, за да направиш първата.</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<!-- Modal за снимката -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-dark text-center">
+      <div class="modal-body">
+        <img id="modalImage" src="" class="img-fluid rounded" alt="Снимка">
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">✖ Затвори</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function openImage(src) {
+        const modalImage = document.getElementById("modalImage");
+        modalImage.src = src;
+        const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+        modal.show();
+    }
+</script>
+
+</body>
+</html>
