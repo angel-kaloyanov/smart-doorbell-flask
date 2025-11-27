@@ -53,9 +53,9 @@
                 document.body.classList.add('fade-out');
             }, 2700);
 
-            // след ~3.3 сек – redirect към началната страница
+            // след ~3.3 сек – redirect към "next_page", подадена от Flask
             setTimeout(() => {
-                window.location.href = "/";
+                window.location.href = "{{ next_page }}";
             }, 3300);
         });
     </script>
@@ -68,13 +68,15 @@
             <div class="text-center preview-card">
                 <h2 class="mb-4">📸 Снимката е направена!</h2>
 
-                <img src="/pictures/{{ filename }}" class="img-fluid preview-image" alt="Снимка от камерата">
+                <img src="{{ url_for('pictures', filename=filename) }}"
+                     class="img-fluid preview-image"
+                     alt="Снимка от камерата">
 
                 <p class="text-muted mt-3">
-                    След малко ще бъдеш върнат към началната страница...
+                    След малко ще бъдеш върнат към страницата, от която дойде...
                 </p>
 
-                <a href="/" class="btn btn-outline-secondary mt-2">
+                <a href="{{ next_page }}" class="btn btn-outline-secondary mt-2">
                     ⬅ Върни се сега
                 </a>
             </div>

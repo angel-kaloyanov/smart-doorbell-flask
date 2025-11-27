@@ -10,13 +10,15 @@
 <body class="bg-light">
 
 <nav class="navbar navbar-dark bg-dark mb-4">
-  <div class="container d-flex justify-content-between">
+  <div class="container d-flex justify-content-between align-items-center">
     <a class="navbar-brand" href="/">
       🛎 Умен звънец
     </a>
-    <a class="nav-link text-light" href="/gallery">
-      📷 Галерия
-    </a>
+
+    <div class="d-flex gap-3">
+      <a class="nav-link text-light" href="/gallery">📷 Галерия</a>
+      <a class="nav-link text-light" href="/live">🎥 Live</a>
+    </div>
   </div>
 </nav>
 
@@ -41,8 +43,8 @@
                   🗑 Изтрий
                 </button>
               </form>
-            </div>
 
+            </div>
           </div>
         </div>
       {% endfor %}
@@ -53,6 +55,31 @@
 
   <a href="/" class="btn btn-secondary mt-3">⬅ Назад към началната страница</a>
 </div>
+
+<!-- Modal за снимката -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-dark text-center">
+      <div class="modal-body">
+        <img id="modalImage" src="" class="img-fluid rounded" alt="Снимка">
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">✖ Затвори</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function openImage(src) {
+        const modalImage = document.getElementById("modalImage");
+        modalImage.src = src;
+        const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+        modal.show();
+    }
+</script>
 
 </body>
 </html>

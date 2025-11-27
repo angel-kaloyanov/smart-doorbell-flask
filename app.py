@@ -70,8 +70,9 @@ def gallery():
 
 @app.route("/preview/<filename>")
 def preview(filename):
-    # Страница за преглед на конкретна снимка
-    return render_template("preview.html", filename=filename)
+    next_page = request.args.get("next", "/")  # по подразбиране -> началната страница
+    return render_template("preview.html", filename=filename, next_page=next_page)
+
 
 
 @app.route("/snapshot")
@@ -80,8 +81,8 @@ def snapshot():
     if filename is None:
         return "Грешка при снимане :(", 500
 
-    # пренасочваме към preview страницата
-    return redirect(url_for("preview", filename=filename))
+    return redirect(url_for("preview", filename=filename, next="/"))
+
 
 
 @app.route("/pictures/<filename>")
@@ -124,8 +125,8 @@ def live_snapshot():
     if filename is None:
         return "Грешка при снимане", 500
 
-    # използваме същата preview страница
-    return redirect(url_for("preview", filename=filename))
+    return redirect(url_for("preview", filename=filename, next="/live"))
+
 
 
 if __name__ == "__main__": app.run(debug=True)
