@@ -2,13 +2,15 @@ from flask import Flask, render_template, send_from_directory, redirect, url_for
 import cv2
 import os
 from datetime import datetime
+
 app = Flask(__name__)
 
 SAVE_DIR = "pictures"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
+
 def take_picture():
-    cap = cv2.VideoCapture(0)  # камерата на лаптопа
+    cap = cv2.VideoCapture(0)  # камерата (USB / лаптоп / Raspberry)
     ret, frame = cap.read()
     cap.release()
 
@@ -19,6 +21,7 @@ def take_picture():
     filepath = os.path.join(SAVE_DIR, filename)
     cv2.imwrite(filepath, frame)
     return filename
+
 
 def generate_frames():
     cap = cv2.VideoCapture(0)  # USB камерата
@@ -49,13 +52,11 @@ def generate_frames():
 
 @app.route("/")
 def index():
-    # взимаме снимките от папката
     images = []
     if os.path.exists(SAVE_DIR):
         images = sorted(os.listdir(SAVE_DIR), reverse=True)  # най-новите отпред
 
     return render_template("index.html", images=images)
-
 
 
 @app.route("/gallery")
@@ -67,14 +68,20 @@ def gallery():
     return render_template("gallery.html", images=images)
 
 
+@app.route("/preview/<filename>")
+def preview(filename):
+    # Страница за преглед на конкретна снимка
+    return render_template("preview.html", filename=filename)
+
+
 @app.route("/snapshot")
 def snapshot():
     filename = take_picture()
     if filename is None:
         return "Грешка при снимане :(", 500
 
-    return render_template("preview.html", filename=filename)
-
+    # пренасочваме към preview страницата
+    return redirect(url_for("preview", filename=filename))
 
 
 @app.route("/pictures/<filename>")
@@ -105,10 +112,20 @@ def video_feed():
         mimetype="multipart/x-mixed-replace; boundary=frame"
     )
 
+
 @app.route("/live")
 def live():
     return render_template("live.html")
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.route("/live_snapshot")
+def live_snapshot():
+    filename = take_picture()
+    if filename is None:
+        return "Грешка при снимане", 500
+
+    # използваме същата preview страница
+    return redirect(url_for("preview", filename=filename))
+
+
+if __name__ == "__main__": app.run(debug=True)

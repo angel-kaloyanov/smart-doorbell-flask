@@ -29,6 +29,11 @@
             height: 60px;
             border-radius: 50%;
         }
+
+        .snap-btn {
+            font-size: 20px;
+            padding: 10px 25px;
+        }
     </style>
 </head>
 
@@ -37,7 +42,10 @@
 <nav class="navbar navbar-dark bg-dark mb-3">
     <div class="container d-flex justify-content-between">
         <a class="navbar-brand" href="/">🛎 Умен звънец</a>
-        <a class="nav-link text-light" href="/gallery">📷 Галерия</a>
+        <div class="d-flex gap-3">
+            <a class="nav-link text-light" href="/gallery">📷 Галерия</a>
+            <a class="nav-link text-light" href="/live">🎥 Live</a>
+        </div>
     </div>
 </nav>
 
@@ -55,12 +63,19 @@
     </div>
 
     <!-- Zoom controls -->
-    <div class="d-flex justify-content-center gap-3">
+    <div class="d-flex justify-content-center gap-3 mb-4">
         <button class="btn btn-primary zoom-btn" onclick="zoomOut()">➖</button>
         <button class="btn btn-primary zoom-btn" onclick="zoomIn()">➕</button>
     </div>
 
-    <a href="/" class="btn btn-secondary mt-4">⬅ Назад</a>
+    <!-- Snapshot button -->
+    <a href="/live_snapshot" class="btn btn-success snap-btn">
+        📸 Направи снимка
+    </a>
+
+    <div>
+        <a href="/" class="btn btn-secondary mt-4">⬅ Назад</a>
+    </div>
 
 </div>
 
