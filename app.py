@@ -8,13 +8,29 @@ app = Flask(__name__)
 SAVE_DIR = "pictures"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
+# 🔹 ЕДНА обща камера за всичко – стрийм + снимки
+camera = cv2.VideoCapture(0)
+
+
+def get_frame():
+    """Взима един кадър от камерата."""
+    global camera
+
+    # ако по някаква причина е затворена – отваряме пак
+    if not camera.isOpened():
+        camera.open(0)
+
+    ret, frame = camera.read()
+    if not ret:
+        return None
+
+    return frame
+
 
 def take_picture():
-    cap = cv2.VideoCapture(0)  # камерата (USB / лаптоп / Raspberry)
-    ret, frame = cap.read()
-    cap.release()
-
-    if not ret:
+    """Прави снимка, използвайки същата камера като стрийма."""
+    frame = get_frame()
+    if frame is None:
         return None
 
     filename = datetime.now().strftime("img_%Y%m%d_%H%M%S.jpg")
@@ -24,37 +40,29 @@ def take_picture():
 
 
 def generate_frames():
-    cap = cv2.VideoCapture(0)  # USB камерата
-    # По желание – намали резолюцията за по-малко натоварване:
-    # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-    # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-
+    """MJPEG стрийм от същата камера."""
     while True:
-        success, frame = cap.read()
-        if not success:
+        frame = get_frame()
+        if frame is None:
             break
 
-        # Преобразуваме кадъра в JPEG
         ret, buffer = cv2.imencode('.jpg', frame)
         if not ret:
             continue
 
         frame_bytes = buffer.tobytes()
 
-        # Връщаме го като част от MJPEG stream
         yield (
             b'--frame\r\n'
             b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n'
         )
-
-    cap.release()
 
 
 @app.route("/")
 def index():
     images = []
     if os.path.exists(SAVE_DIR):
-        images = sorted(os.listdir(SAVE_DIR), reverse=True)  # най-новите отпред
+        images = sorted(os.listdir(SAVE_DIR), reverse=True)
 
     return render_template("index.html", images=images)
 
@@ -70,9 +78,8 @@ def gallery():
 
 @app.route("/preview/<filename>")
 def preview(filename):
-    next_page = request.args.get("next", "/")  # по подразбиране -> началната страница
+    next_page = request.args.get("next", "/")
     return render_template("preview.html", filename=filename, next_page=next_page)
-
 
 
 @app.route("/snapshot")
@@ -84,7 +91,6 @@ def snapshot():
     return redirect(url_for("preview", filename=filename, next="/"))
 
 
-
 @app.route("/pictures/<filename>")
 def pictures(filename):
     return send_from_directory(SAVE_DIR, filename)
@@ -92,7 +98,6 @@ def pictures(filename):
 
 @app.route("/delete/<filename>", methods=["POST"])
 def delete_image(filename):
-    # предпазване от ../ и други глупости
     safe_name = os.path.basename(filename)
     path = os.path.join(SAVE_DIR, safe_name)
 
@@ -102,7 +107,6 @@ def delete_image(filename):
     else:
         print("Опит за триене на несъществуващ файл:", path)
 
-    # връщаме потребителя там, откъдето е дошъл (index или gallery)
     return redirect(request.referrer or url_for("index"))
 
 
