@@ -1,6 +1,7 @@
 from flask import Flask, render_template, send_from_directory, redirect, url_for, request, Response
 import cv2
 import os
+import time
 from datetime import datetime
 
 app = Flask(__name__)
@@ -61,8 +62,10 @@ def generate_frames():
     """MJPEG стрийм, използващ същата камера."""
     while True:
         frame = get_frame()
+
         if frame is None:
-            break
+            time.sleep(0.05)
+            continue
 
         ret, buffer = cv2.imencode('.jpg', frame)
         if not ret:
