@@ -1,4 +1,5 @@
 from flask import Flask, render_template, send_from_directory, redirect, url_for, request, Response
+from gpiozero import LED, Button, MotionSensor
 import cv2
 import os
 import time
@@ -9,8 +10,11 @@ app = Flask(__name__)
 SAVE_DIR = "pictures"
 os.makedirs(SAVE_DIR, exist_ok=True)
 
-# 🔹 Глобална променлива за камерата (лениво отваряне)
+#Глобални променливи за камерата, led, бутон и PIR-сензор
 camera = None
+led = LED(17)
+button = Button(27, pull_up=True)
+pir = MotionSensor(22)
 
 
 def get_camera():
@@ -56,6 +60,15 @@ def take_picture():
     filepath = os.path.join(SAVE_DIR, filename)
     cv2.imwrite(filepath, frame)
     return filename
+
+
+def handle_event(source):
+    print(f"Събитие от: {source}")
+    led.on()
+    filename = take_picture()
+    print("Направена снимка:", filename)
+    time.sleep(0.5)
+    led.off()
 
 
 def generate_frames():
@@ -151,6 +164,9 @@ def live_snapshot():
         return "Грешка при снимане", 500
 
     return redirect(url_for("preview", filename=filename, next="/live"))
+
+button.when_pressed = lambda: handle_event("бутон")
+pir.when_motion = lambda: handle_event("PIR")
 
 
 if __name__ == "__main__":
