@@ -22,17 +22,11 @@ def get_camera():
     global camera
 
     if camera is None or not camera.isOpened():
-        # тук е мястото, ако искаш да смениш индекса (0 -> 1 и т.н.)
-        camera = cv2.VideoCapture(0)
-
-        # по желание – намали резолюцията
-        # camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        # camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        camera = cv2.VideoCapture(0, cv2.CAP_V4L2)
 
         if not camera.isOpened():
             print("[ERROR] Не мога да отворя камерата на индекс 0")
             return None
-
     return camera
 
 
@@ -73,15 +67,29 @@ def handle_event(source):
 
 def generate_frames():
     """MJPEG стрийм, използващ същата камера."""
+    fail_count = 0
+
     while True:
         frame = get_frame()
 
         if frame is None:
-            time.sleep(0.05)
+            fail_count += 1
+            if fail_count >= 10:
+                # опит за reset на камерата
+                global camera
+                if camera is not None:
+                    camera.release()
+                    camera = None
+                fail_count = 0
+                print("[WARN] Рестартирам камерата...")
+            time.sleep(0.1)
             continue
+
+        fail_count = 0
 
         ret, buffer = cv2.imencode('.jpg', frame)
         if not ret:
+            time.sleep(0.02)
             continue
 
         frame_bytes = buffer.tobytes()
@@ -90,6 +98,10 @@ def generate_frames():
             b'--frame\r\n'
             b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n'
         )
+
+        # ограничаваме се примерно до ~25 fps
+        time.sleep(0.04)
+
 
 
 @app.route("/")
